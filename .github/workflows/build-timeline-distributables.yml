@@ -1,0 +1,61 @@
+name: Build Claude-Mem distributable bundles (manual)
+on:
+  workflow_dispatch:
+    inputs:
+      target_ref:
+        description: "Branch to compile (must belong to this fork)"
+        required: true
+        default: "fix/timeline-relative-path-display"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.target_ref }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.4
+
+      - name: Install project dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Full official build
+        run: npm run build
+
+      - name: Test Windows timeline-label regression fixtures
+        run: bun test tests/shared/timeline-formatting.test.ts
+
+      - name: Inspect changed generated files
+        shell: bash
+        run: |
+          git diff --stat
+          git diff --name-only > build-changed-files.txt
+          cat build-changed-files.txt
+          git status --short
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: timeline-distributable-bundles
+          if-no-files-found: error
+          retention-days: 2
+          path: |
+            plugin/scripts/worker-service.cjs
+            plugin/scripts/worker-service.cjs.map
+            plugin/scripts/context-generator.cjs
+            plugin/scripts/context-generator.cjs.map
+            plugin/scripts/context-read-worker.cjs
+            plugin/scripts/context-read-worker.cjs.map
+            build-changed-files.txt
