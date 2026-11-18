@@ -58,4 +58,8 @@ jobs:
             plugin/scripts/context-generator.cjs.map
             plugin/scripts/context-read-worker.cjs
             plugin/scripts/context-read-worker.cjs.map
+            plugin/scripts/hook-service.cjs
+            plugin/scripts/hook-service.cjs.map
+            plugin/scripts/transcript-watcher.cjs
+            plugin/scripts/transcript-watcher.cjs.map
             build-changed-files.txt
